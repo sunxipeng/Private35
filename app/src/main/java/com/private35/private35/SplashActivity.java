@@ -4,11 +4,8 @@ import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -21,15 +18,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 /**
  * Created by sunxipeng on 2016/10/13.
@@ -67,15 +55,16 @@ public class SplashActivity extends Activity {
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webView.setDownloadListener(new MyWebViewDownLoadListener());
+        webView.addJavascriptInterface(this, "webtest");
         webView.loadUrl(url);
         webView.setWebViewClient(new WebViewClient() {
 
 
-            public void onPageFinished(WebView paramWebView, String paramString)
-            {
+            public void onPageFinished(WebView paramWebView, String paramString) {
                 super.onPageFinished(paramWebView, paramString);
                 paramWebView.loadUrl("javascript:(function(){  var objs = document.getElementsByTagName(\"img\");   for(var i=0;i<objs.length;i++){     objs[i].onclick=function(){          window.webtest.jsInvokeJava(this.src);       }  }})()");
             }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // TODO Auto-generated method stub
@@ -83,10 +72,8 @@ public class SplashActivity extends Activity {
                 return true;
             }
 
-            public void onPageStarted(WebView paramWebView, String paramString, Bitmap paramBitmap)
-            {
-                if (paramString.startsWith("mqqwpa"))
-                {
+            public void onPageStarted(WebView paramWebView, String paramString, Bitmap paramBitmap) {
+                if (paramString.startsWith("mqqwpa")) {
                     paramWebView.stopLoading();
                     Intent localIntent = new Intent("android.intent.action.VIEW", Uri.parse(paramString));
                     SplashActivity.this.startActivity(localIntent);
@@ -103,92 +90,23 @@ public class SplashActivity extends Activity {
     }
 
     Bitmap mBitmap;
+
     @JavascriptInterface
     public void jsInvokeJava(String paramString)
-            throws Exception
-    {
-        if ((paramString.equals("http://app.pk555.com/Public/home/images/57063619676c7.jpg")) || (paramString.equals("http://app.pk555.com/index/libao.html")))
-        {
+            throws Exception {
+
+
+        if ((paramString.equals("http://app.pk555.com/Public/home/images/bar1.png"))) {
             Log.i("songe", "被点击的图片地址为：" + paramString);
-            byte[] arrayOfByte = getImage("http://app.pk555.com/Public/home/images/57063619676c7.jpg");
-            if (arrayOfByte != null)
-            {
-                this.mBitmap = BitmapFactory.decodeByteArray(arrayOfByte, 0, arrayOfByte.length);
-                savebitmap(this.mBitmap);
-            }
+
+            startActivity(new Intent(SplashActivity.this,ImageActivity.class));
+
         }
-        else
-        {
-            return;
-        }
-        Toast.makeText(this, "Image error!", Toast.LENGTH_SHORT).show();
     }
 
-    public byte[] getImage(String paramString)
-            throws Exception
-    {
-        HttpURLConnection localHttpURLConnection = (HttpURLConnection)new URL(paramString).openConnection();
-        localHttpURLConnection.setConnectTimeout(5000);
-        localHttpURLConnection.setRequestMethod("GET");
-        InputStream localInputStream = localHttpURLConnection.getInputStream();
-        if (localHttpURLConnection.getResponseCode() == 200)
-            return readStream(localInputStream);
-        return null;
-    }
 
-    public static byte[] readStream(InputStream paramInputStream)
-            throws Exception
-    {
-        ByteArrayOutputStream localByteArrayOutputStream = new ByteArrayOutputStream();
-        byte[] arrayOfByte = new byte[1024];
-        while (true)
-        {
-            int i = paramInputStream.read(arrayOfByte);
-            if (i == -1)
-                break;
-            localByteArrayOutputStream.write(arrayOfByte, 0, i);
-        }
-        localByteArrayOutputStream.close();
-        paramInputStream.close();
-        return localByteArrayOutputStream.toByteArray();
-    }
 
-    private void savebitmap(Bitmap paramBitmap)
-    {
-        File localFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "sunxipeng:::::test" + System.currentTimeMillis() + ".jpg");
-        if (localFile.exists())
-            localFile.delete();
-        try
-        {
-            FileOutputStream localFileOutputStream = new FileOutputStream(localFile);
-            if (paramBitmap.compress(Bitmap.CompressFormat.JPEG, 90, localFileOutputStream))
-            {
-                localFileOutputStream.flush();
-                localFileOutputStream.close();
-                Toast.makeText(this, "图片保存成功", Toast.LENGTH_SHORT).show();
-            }
-            if (Build.VERSION.SDK_INT >= 19)
-            {
-                Intent localIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_FILE");
-                localIntent.setData(Uri.fromFile(localFile));
-                sendBroadcast(localIntent);
-                return;
-            }
-        }
-        catch (FileNotFoundException localFileNotFoundException)
-        {
-            while (true)
-                localFileNotFoundException.printStackTrace();
-        }
-        catch (IOException localIOException)
-        {
-            while (true)
-                localIOException.printStackTrace();
 
-        }
-
-        sendBroadcast(new Intent("android.intent.action.MEDIA_MOUNTED", Uri.parse("file://" + Environment.getExternalStorageDirectory())));
-    }
     //改写物理按键——返回的逻辑
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -214,14 +132,14 @@ public class SplashActivity extends Activity {
 
             Log.d("SplashActivity", url);
             String string[] = url.split("/");
-            for (String str: string){
+            for (String str : string) {
 
-                if(str.contains(".apk")){
+                if (str.contains(".apk")) {
 
                     downloadurl = str;
                 }
             }
-            Toast.makeText(SplashActivity.this,"开始下载",Toast.LENGTH_SHORT).show();
+            Toast.makeText(SplashActivity.this, "开始下载", Toast.LENGTH_SHORT).show();
             DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             Uri uri = Uri.parse(url);
             DownloadManager.Request request = new DownloadManager.Request(uri);
