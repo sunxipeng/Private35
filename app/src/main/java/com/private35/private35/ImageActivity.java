@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,6 +12,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
@@ -25,12 +28,12 @@ import java.net.URL;
 /**
  * Created by Administrator on 2016/10/26.
  */
-public class ImageActivity extends Activity{
+public class ImageActivity extends Activity {
 
     private byte[] arrayOfByte;
 
 
-    Handler handler = new Handler(){
+    Handler handler = new Handler() {
 
         @Override
         public void handleMessage(Message msg) {
@@ -45,7 +48,14 @@ public class ImageActivity extends Activity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(Color.BLACK);
 
+            //底部导航栏
+            //window.setNavigationBarColor(activity.getResources().getColor(colorResId));
+        }
         setContentView(R.layout.activity_iamge);
 
         findViewById(R.id.iv).setOnClickListener(new View.OnClickListener() {
@@ -100,12 +110,9 @@ public class ImageActivity extends Activity{
                 }).start();
 
 
-
-
             }
         });
     }
-
 
 
     public byte[] getImage(String paramString)

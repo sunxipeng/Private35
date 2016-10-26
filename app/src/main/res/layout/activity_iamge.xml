@@ -54,8 +54,8 @@
 
     <ImageView
         android:id="@+id/iv_save"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
         android:layout_gravity="center"
         android:layout_marginTop="30dp"
         android:src="@mipmap/erweima"/>
@@ -66,11 +66,11 @@
         android:layout_height="50dp"
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="50dp"
         android:gravity="center"
         android:text="长按二维码保存"
         android:textSize="17sp"
-        android:background="#A8D590"
+        android:background="#a8d590"
         android:textColor="#333333">
 
     </TextView>
