@@ -8,6 +8,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.widget.Toast;
 
@@ -25,6 +27,21 @@ import java.net.URL;
  */
 public class ImageActivity extends Activity{
 
+    private byte[] arrayOfByte;
+
+
+    Handler handler = new Handler(){
+
+        @Override
+        public void handleMessage(Message msg) {
+
+            savebitmap(mBitmap);
+
+
+        }
+    };
+    private Bitmap mBitmap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,16 +58,21 @@ public class ImageActivity extends Activity{
         findViewById(R.id.iv_save).setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                try {
-                    byte[] arrayOfByte = getImage("http://app.pk555.com/Public/home/images/57063619676c7.jpg");
-                    if (arrayOfByte != null) {
-                        Bitmap mBitmap = BitmapFactory.decodeByteArray(arrayOfByte, 0, arrayOfByte.length);
-                        savebitmap(mBitmap);
-                        Toast.makeText(ImageActivity.this,"保存图片成功",Toast.LENGTH_SHORT).show();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            arrayOfByte = getImage("http://app.pk555.com/Public/home/images/57063619676c7.jpg");
+                            if (arrayOfByte != null) {
+                                mBitmap = BitmapFactory.decodeByteArray(arrayOfByte, 0, arrayOfByte.length);
+                                handler.sendEmptyMessage(new Message().what = 1);
+
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                }).start();
                 return false;
             }
         });
@@ -60,16 +82,25 @@ public class ImageActivity extends Activity{
             @Override
             public void onClick(View v) {
 
-                try {
-                    byte[] arrayOfByte = getImage("http://app.pk555.com/Public/home/images/57063619676c7.jpg");
-                    if (arrayOfByte != null) {
-                        Bitmap mBitmap = BitmapFactory.decodeByteArray(arrayOfByte, 0, arrayOfByte.length);
-                        savebitmap(mBitmap);
-                        Toast.makeText(ImageActivity.this,"保存图片成功",Toast.LENGTH_SHORT).show();
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            arrayOfByte = getImage("http://app.pk555.com/Public/home/images/57063619676c7.jpg");
+                            if (arrayOfByte != null) {
+                                mBitmap = BitmapFactory.decodeByteArray(arrayOfByte, 0, arrayOfByte.length);
+
+                                handler.sendEmptyMessage(new Message().what = 1);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                }).start();
+
+
+
 
             }
         });
