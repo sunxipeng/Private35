@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,20 +16,14 @@ import android.view.View;
 import android.view.WindowManager;
 import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
+import android.webkit.MimeTypeMap;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 /**
  * Created by sunxipeng on 2016/10/13.
@@ -119,60 +114,6 @@ public class SplashActivity extends Activity {
         }
     }
 
-    public byte[] getImage(String paramString)
-            throws Exception {
-        HttpURLConnection localHttpURLConnection = (HttpURLConnection) new URL(paramString).openConnection();
-        localHttpURLConnection.setConnectTimeout(5000);
-        localHttpURLConnection.setRequestMethod("GET");
-        InputStream localInputStream = localHttpURLConnection.getInputStream();
-        if (localHttpURLConnection.getResponseCode() == 200)
-            return readStream(localInputStream);
-        return null;
-    }
-
-    public static byte[] readStream(InputStream paramInputStream)
-            throws Exception {
-        ByteArrayOutputStream localByteArrayOutputStream = new ByteArrayOutputStream();
-        byte[] arrayOfByte = new byte[1024];
-        while (true) {
-            int i = paramInputStream.read(arrayOfByte);
-            if (i == -1)
-                break;
-            localByteArrayOutputStream.write(arrayOfByte, 0, i);
-        }
-        localByteArrayOutputStream.close();
-        paramInputStream.close();
-        return localByteArrayOutputStream.toByteArray();
-    }
-
-    private void savebitmap(Bitmap paramBitmap) {
-        File localFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "sunxipeng:::::test" + System.currentTimeMillis() + ".jpg");
-        if (localFile.exists())
-            localFile.delete();
-        try {
-            FileOutputStream localFileOutputStream = new FileOutputStream(localFile);
-            if (paramBitmap.compress(Bitmap.CompressFormat.JPEG, 90, localFileOutputStream)) {
-                localFileOutputStream.flush();
-                localFileOutputStream.close();
-                Toast.makeText(this, "图片保存成功", Toast.LENGTH_SHORT).show();
-            }
-            if (Build.VERSION.SDK_INT >= 19) {
-                Intent localIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_FILE");
-                localIntent.setData(Uri.fromFile(localFile));
-                sendBroadcast(localIntent);
-                return;
-            }
-        } catch (FileNotFoundException localFileNotFoundException) {
-            while (true)
-                localFileNotFoundException.printStackTrace();
-        } catch (IOException localIOException) {
-            while (true)
-                localIOException.printStackTrace();
-
-        }
-
-        sendBroadcast(new Intent("android.intent.action.MEDIA_MOUNTED", Uri.parse("file://" + Environment.getExternalStorageDirectory())));
-    }
 
     //改写物理按键——返回的逻辑
     @Override
@@ -210,9 +151,19 @@ public class SplashActivity extends Activity {
             DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             Uri uri = Uri.parse(url);
             DownloadManager.Request request = new DownloadManager.Request(uri);
+            //创建文件的下载路径
+            File folder = Environment.getExternalStoragePublicDirectory(getPackageName() + "/myDownLoad");
+            if (!folder.exists() || !folder.isDirectory()) {
+                folder.mkdirs();
+            }
             request.setDestinationInExternalPublicDir("download", downloadurl);
             request.setDestinationInExternalPublicDir(getPackageName() + "/myDownLoad", downloadurl);
+
+            MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+            String mimeString = mimeTypeMap.getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url));
+            request.setMimeType(mimeString);
             long appid = downloadManager.enqueue(request);
+
 
         }
 
@@ -230,5 +181,8 @@ public class SplashActivity extends Activity {
             getWindow().setAttributes(attr);
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         }
+
+        while (Build.VERSION.SDK_INT < 21);
+        getWindow().setStatusBarColor(Color.BLACK);
     }
 }
