@@ -1,7 +1,9 @@
 package com.private35.private35;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -11,6 +13,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -30,6 +34,7 @@ import java.net.URL;
  */
 public class ImageActivity extends Activity {
 
+    int WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 0;
     private byte[] arrayOfByte;
 
 
@@ -53,8 +58,6 @@ public class ImageActivity extends Activity {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(Color.BLACK);
 
-            //底部导航栏
-            //window.setNavigationBarColor(activity.getResources().getColor(colorResId));
         }
         setContentView(R.layout.activity_iamge);
 
@@ -72,7 +75,7 @@ public class ImageActivity extends Activity {
                     @Override
                     public void run() {
                         try {
-                            arrayOfByte = getImage("http://app.pk555.com/Public/home/images/57063619676c7.jpg");
+                            arrayOfByte = getImage("http://www.pk555.com/Public/uploads/tupian/2016-10-25/2016_10_25_145107_1410.jpg");
                             if (arrayOfByte != null) {
                                 mBitmap = BitmapFactory.decodeByteArray(arrayOfByte, 0, arrayOfByte.length);
                                 handler.sendEmptyMessage(new Message().what = 1);
@@ -97,7 +100,7 @@ public class ImageActivity extends Activity {
                     @Override
                     public void run() {
                         try {
-                            arrayOfByte = getImage("http://app.pk555.com/Public/home/images/57063619676c7.jpg");
+                            arrayOfByte = getImage("http://www.pk555.com/Public/uploads/tupian/2016-10-25/2016_10_25_145107_1410.jpg");
                             if (arrayOfByte != null) {
                                 mBitmap = BitmapFactory.decodeByteArray(arrayOfByte, 0, arrayOfByte.length);
 
@@ -142,6 +145,29 @@ public class ImageActivity extends Activity {
     }
 
     private void savebitmap(Bitmap paramBitmap) {
+
+        //手机系统大于或等于23
+        if (Build.VERSION.SDK_INT >= 23) {
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                //申请WRITE_EXTERNAL_STORAGE权限
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
+            }else {
+
+                saveimage(paramBitmap);
+            }
+
+        }else {
+
+            saveimage(paramBitmap);
+        }
+
+    }
+
+    private void saveimage(Bitmap paramBitmap){
+
         File localFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "sunxipeng:::::test" + System.currentTimeMillis() + ".jpg");
         if (localFile.exists())
             localFile.delete();
@@ -160,14 +186,27 @@ public class ImageActivity extends Activity {
             }
         } catch (FileNotFoundException localFileNotFoundException) {
 
-                localFileNotFoundException.printStackTrace();
+            localFileNotFoundException.printStackTrace();
         } catch (IOException localIOException) {
 
-                localIOException.printStackTrace();
+            localIOException.printStackTrace();
 
         }
-       // sendBroadcast(new Intent("android.intent.action.MEDIA_SCANNER_SCAN_FILE").setData(Uri.fromFile(localFile)));
+        // sendBroadcast(new Intent("android.intent.action.MEDIA_SCANNER_SCAN_FILE").setData(Uri.fromFile(localFile)));
         sendBroadcast(new Intent("android.intent.action.MEDIA_MOUNTED", Uri.parse("file://" + Environment.getExternalStorageDirectory())));
     }
 
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if(requestCode == WRITE_EXTERNAL_STORAGE_REQUEST_CODE &&grantResults[0] == PackageManager.PERMISSION_GRANTED){
+
+            saveimage(mBitmap);
+
+        }
+
+    }
 }

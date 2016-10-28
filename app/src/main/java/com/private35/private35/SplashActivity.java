@@ -1,8 +1,10 @@
 package com.private35.private35;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
@@ -10,6 +12,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Message;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -31,6 +35,7 @@ import java.io.File;
  */
 public class SplashActivity extends Activity {
 
+    private final int WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 0;
     private WebView webView;
     private static String url = "http://app.pk555.com/";
     android.os.Handler handler = new android.os.Handler() {
@@ -50,6 +55,9 @@ public class SplashActivity extends Activity {
         }
     };
     private TextView tv_splash;
+    private DownloadManager downloadManager;
+    private Uri uri;
+    private DownloadManager.Request request;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -130,10 +138,10 @@ public class SplashActivity extends Activity {
         }
         return super.onKeyDown(keyCode, event);
     }
-
+    private String downloadurl;
     class MyWebViewDownLoadListener implements DownloadListener {
 
-        private String downloadurl;
+
 
         @Override
         public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype,
@@ -149,22 +157,56 @@ public class SplashActivity extends Activity {
                 }
             }
             Toast.makeText(SplashActivity.this, "开始下载", Toast.LENGTH_SHORT).show();
-            DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-            Uri uri = Uri.parse(url);
-            DownloadManager.Request request = new DownloadManager.Request(uri);
-            //创建文件的下载路径
-            File folder = Environment.getExternalStoragePublicDirectory(getPackageName() + "/myDownLoad");
-            if (!folder.exists() || !folder.isDirectory()) {
-                folder.mkdirs();
+            downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            uri = Uri.parse(url);
+            request = new DownloadManager.Request(uri);
+
+            //手机系统大于或等于23
+            if (Build.VERSION.SDK_INT >= 23) {
+
+                if (ContextCompat.checkSelfPermission(SplashActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    //申请WRITE_EXTERNAL_STORAGE权限
+                    ActivityCompat.requestPermissions(SplashActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
+                }else {
+
+                    saveapk();
+                }
+
+            }else {
+
+                saveapk();
             }
-            request.setDestinationInExternalPublicDir("download", downloadurl);
-            request.setDestinationInExternalPublicDir(getPackageName() + "/myDownLoad", downloadurl);
 
-            MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
-            String mimeString = mimeTypeMap.getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url));
-            request.setMimeType(mimeString);
-            long appid = downloadManager.enqueue(request);
+        }
 
+    }
+
+    private void saveapk(){
+
+        //创建文件的下载路径
+        File folder = Environment.getExternalStoragePublicDirectory(getPackageName() + "/myDownLoad");
+        if (!folder.exists() || !folder.isDirectory()) {
+            folder.mkdirs();
+        }
+        //request.setDestinationInExternalPublicDir("download", downloadurl);
+        request.setDestinationInExternalPublicDir(getPackageName() + "/myDownLoad", downloadurl);
+
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        String mimeString = mimeTypeMap.getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url));
+        request.setMimeType(mimeString);
+        long appid = downloadManager.enqueue(request);
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if(requestCode == WRITE_EXTERNAL_STORAGE_REQUEST_CODE &&grantResults[0] == PackageManager.PERMISSION_GRANTED){
+
+            saveapk();
 
         }
 
