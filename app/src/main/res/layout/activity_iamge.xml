@@ -41,14 +41,14 @@
         <ImageView
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:src="@mipmap/test"/>
+            android:src="@mipmap/qq1"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="10dp"
-            android:text="扫描二维码,关注35游微信公众号"/>
+            android:text="扫描二维码,送礼包"/>
 
     </LinearLayout>
 
@@ -58,7 +58,7 @@
         android:layout_height="280dp"
         android:layout_gravity="center"
         android:layout_marginTop="30dp"
-        android:src="@mipmap/erweima"/>
+        android:src="@mipmap/qqerweima"/>
 
     <TextView
         android:id="@+id/bt_save"

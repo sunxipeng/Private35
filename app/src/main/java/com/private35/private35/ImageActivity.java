@@ -159,14 +159,14 @@ public class ImageActivity extends Activity {
                 return;
             }
         } catch (FileNotFoundException localFileNotFoundException) {
-            while (true)
+
                 localFileNotFoundException.printStackTrace();
         } catch (IOException localIOException) {
-            while (true)
+
                 localIOException.printStackTrace();
 
         }
-
+       // sendBroadcast(new Intent("android.intent.action.MEDIA_SCANNER_SCAN_FILE").setData(Uri.fromFile(localFile)));
         sendBroadcast(new Intent("android.intent.action.MEDIA_MOUNTED", Uri.parse("file://" + Environment.getExternalStorageDirectory())));
     }
 
