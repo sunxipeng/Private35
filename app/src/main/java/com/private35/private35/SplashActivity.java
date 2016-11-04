@@ -3,8 +3,12 @@ package com.private35.private35;
 import android.Manifest;
 import android.app.Activity;
 import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
@@ -29,12 +33,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by sunxipeng on 2016/10/13.
  */
 public class SplashActivity extends Activity {
 
+    private static Map<Long, String> downloadid = new HashMap<>();
     private final int WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 0;
     private WebView webView;
     private static String url = "http://app.pk555.com/";
@@ -65,6 +75,35 @@ public class SplashActivity extends Activity {
         full(true);
         setContentView(R.layout.activity_splash);
 
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                boolean flag = true;
+                //文件下载完成
+                long completeDownloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                //遍历map集合
+                Set set = downloadid.entrySet();
+                while (set.iterator().hasNext()) {
+
+                    Map.Entry me = (Map.Entry) set.iterator().next();
+                    if ((long) me.getKey() == completeDownloadId && flag) {
+                        String apkname = downloadid.get(me.getKey());
+                        Intent intentapk = new Intent();
+                        intentapk.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intentapk.setAction(android.content.Intent.ACTION_VIEW);
+                        intentapk.setDataAndType(Uri.fromFile(new File(apkname)),
+                                "application/vnd.android.package-archive");
+                        startActivity(intentapk);
+                        flag = false;
+                    }
+
+                }
+
+
+            }
+        }, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         tv_splash = (TextView) findViewById(R.id.tv_splash);
         webView = (WebView) findViewById(R.id.webview);
         WebSettings webSettings = webView.getSettings();
@@ -114,7 +153,7 @@ public class SplashActivity extends Activity {
         if ((paramString.equals("http://app.pk555.com/Public/home/images/bar1.png"))) {
             Log.i("songe", "被点击的图片地址为：" + paramString);
 
-            startActivity(new Intent(SplashActivity.this,ImageActivity.class));
+            startActivity(new Intent(SplashActivity.this, ImageActivity.class));
             /*byte[] arrayOfByte = getImage("http://app.pk555.com/Public/home/images/57063619676c7.jpg");
             if (arrayOfByte != null) {
                 this.mBitmap = BitmapFactory.decodeByteArray(arrayOfByte, 0, arrayOfByte.length);
@@ -138,9 +177,10 @@ public class SplashActivity extends Activity {
         }
         return super.onKeyDown(keyCode, event);
     }
-    private String downloadurl;
-    class MyWebViewDownLoadListener implements DownloadListener {
 
+    private String downloadurl;
+
+    class MyWebViewDownLoadListener implements DownloadListener {
 
 
         @Override
@@ -169,12 +209,12 @@ public class SplashActivity extends Activity {
                     //申请WRITE_EXTERNAL_STORAGE权限
                     ActivityCompat.requestPermissions(SplashActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                             WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
-                }else {
+                } else {
 
                     saveapk();
                 }
 
-            }else {
+            } else {
 
                 saveapk();
             }
@@ -183,28 +223,67 @@ public class SplashActivity extends Activity {
 
     }
 
-    private void saveapk(){
+    private void saveapk() {
 
         //创建文件的下载路径
-        File folder = Environment.getExternalStoragePublicDirectory(getPackageName() + "/myDownLoad");
-        if (!folder.exists() || !folder.isDirectory()) {
+       // File folder = Environment.getExternalStorageDirectory();
+        /*if (!folder.exists() || !folder.isDirectory()) {
             folder.mkdirs();
-        }
+        }*/
         //request.setDestinationInExternalPublicDir("download", downloadurl);
-        request.setDestinationInExternalPublicDir(getPackageName() + "/myDownLoad", downloadurl);
+        request.setDestinationInExternalPublicDir("haha", downloadurl);
 
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() +"/haha" +downloadurl;
         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
         String mimeString = mimeTypeMap.getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url));
         request.setMimeType(mimeString);
         long appid = downloadManager.enqueue(request);
 
+
+        downloadid.put(appid, path);
+
+       /* while (true){
+            querydownloadprogress(appid,getPackageName() + "/myDownLoad"+downloadurl);
+        }*/
+
     }
+
+   /* private void querydownloadprogress(Long appid,String apkpath) {
+
+        DownloadManager.Query query = new DownloadManager.Query();
+        query.setFilterById(appid);
+        Cursor cursor =  downloadManager.query(query);
+
+        if(cursor!=null&&cursor.moveToFirst()){
+
+            int filename = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_FILENAME);
+            int fileurl = cursor.getColumnIndex(DownloadManager.COLUMN_URI);
+            String fn = cursor.getString(filename);
+            String fu = cursor.getString(fileurl);
+
+            int totalsize = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+            int sofar = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+
+            if(totalsize == sofar){
+                //下载完毕
+
+                Intent intent = new Intent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setAction(android.content.Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(new File(apkpath)),
+                        "application/vnd.android.package-archive");
+                startActivity(intent);
+
+            }
+        }
+
+    }*/
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if(requestCode == WRITE_EXTERNAL_STORAGE_REQUEST_CODE &&grantResults[0] == PackageManager.PERMISSION_GRANTED){
+        if (requestCode == WRITE_EXTERNAL_STORAGE_REQUEST_CODE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
             saveapk();
 
